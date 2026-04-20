@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ESPN Drone Ops" />
+  <title>ESPN Drone Ops Notifier</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f2f2f7; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 48px 16px 24px; }
+    .wrap { width: 100%; max-width: 420px; }
+    h1 { font-size: 22px; font-weight: 600; color: #1c1c1e; margin-bottom: 4px; }
+    .sub { font-size: 14px; color: #6e6e73; margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+    label { font-size: 12px; color: #6e6e73; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    input { width: 100%; font-size: 16px; padding: 10px 12px; border: 1px solid #d1d1d6; border-radius: 10px; background: #f9f9f9; color: #1c1c1e; outline: none; }
+    input:focus { border-color: #007aff; background: #fff; }
+    .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .btn { padding: 20px 8px; border-radius: 16px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; -webkit-tap-highlight-color: transparent; transition: transform 0.1s, opacity 0.1s; }
+    .btn:active { transform: scale(0.96); opacity: 0.85; }
+    .btn-takeoff { background: #1a7f5a; color: #e6f4ee; }
+    .btn-land { background: #1a5fa8; color: #e6f0fb; }
+    .btn .icon { font-size: 28px; }
+    .preview-card { background: #fff; border-radius: 16px; padding: 16px; }
+    .preview { font-size: 14px; color: #8e8e93; line-height: 1.7; min-height: 60px; white-space: pre-wrap; }
+    .preview.active { color: #1c1c1e; }
+    .copy-btn { margin-top: 14px; width: 100%; padding: 14px; border-radius: 12px; border: none; background: #007aff; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; display: none; -webkit-tap-highlight-color: transparent; transition: opacity 0.1s; }
+    .copy-btn:active { opacity: 0.8; }
+    .status { margin-top: 10px; font-size: 13px; color: #8e8e93; text-align: center; min-height: 18px; }
+    .status.ok { color: #1a7f5a; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>ESPN Drone Ops</h1>
+    <p class="sub">Tap takeoff or landing to generate your Signal message.</p>
+    <div class="card">
+      <label>Pilot / callsign</label>
+      <input id="pilot" type="text" placeholder="e.g. Unit 3 — Daniel" />
+    </div>
+    <div class="btns">
+      <button class="btn btn-takeoff" onclick="generate('TAKEOFF')">
+        <span class="icon">▲</span>
+        Takeoff
+      </button>
+      <button class="btn btn-land" onclick="generate('LANDING')">
+        <span class="icon">▼</span>
+        Landing
+      </button>
+    </div>
+    <div class="preview-card">
+      <div class="preview" id="preview">Your message will appear here.</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyMsg()">Copy message</button>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+  <script>
+    let lastMsg = '';
+    function now() {
+      const d = new Date();
+      return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+    function generate(type) {
+      const pilot = document.getElementById('pilot').value.trim() || '[Pilot]';
+      const emoji = type === 'TAKEOFF' ? '🟢' : '🔵';
+      lastMsg = emoji + ' ' + type + '\nTime: ' + now() + '\nPilot: ' + pilot;
+      const pre = document.getElementById('preview');
+      pre.innerText = lastMsg;
+      pre.classList.add('active');
+      document.getElementById('copyBtn').style.display = 'block';
+      document.getElementById('status').textContent = '';
+    }
+    function copyMsg() {
+      if (!lastMsg) return;
+      navigator.clipboard.writeText(lastMsg).then(() => {
+        const s = document.getElementById('status');
+        s.textContent = 'Copied! Paste into Signal.';
+        s.className = 'status ok';
+        setTimeout(() => { s.textContent = ''; s.className = 'status'; }, 3000);
+      }).catch(() => {
+        const s = document.getElementById('status');
+        s.textContent = 'Tap & hold the message to copy manually.';
+        s.className = 'status';
+      });
+    }
+  </script>
+</body>
+</html>
